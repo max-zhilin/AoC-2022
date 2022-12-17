@@ -51,7 +51,7 @@ fun Array<CharArray>.freeze() {
     }
 }
 fun Array<CharArray>.height(oldHeight: Int): Int {
-    for (row in oldHeight + 10 downTo oldHeight)
+    for (row in oldHeight + 6 downTo oldHeight)
         for (c in this[row])
             if (c == rock) return row + 1
     return oldHeight
@@ -165,7 +165,7 @@ fun main() {
                     '>' -> chamber.shiftRight()
                 }
                 counter++
-                val isSpace = if (windowed) chamber.fall() else chamber.fallInWindow()
+                val isSpace = if (windowed) chamber.fallInWindow() else chamber.fall()
             } while (isSpace)
             chamber.freeze()
             height = chamber.height(oldHeight = height)
