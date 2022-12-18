@@ -74,6 +74,8 @@ fun Array<CharArray>.fallInWindow(): Boolean {
 fun Array<CharArray>.slide(diff: Int) {
     for (row in diff .. lastIndex)
         this[row - diff] = this[row]
+    for (row in lastIndex + 1 - diff .. lastIndex)
+        this[row] = CharArray(7) { air }
 }
 
 fun main() {
@@ -136,7 +138,7 @@ fun main() {
     }
 
     fun part2(input: List<String>, times: Int): Int {
-        val (rows, cols) = listOf(1000, 7)
+        val (rows, cols) = listOf(50, 7)
         val chamber = Array(rows) { CharArray(cols) { air } }
         val rocks = buildRocks()
         val wind = input[0]
@@ -144,15 +146,20 @@ fun main() {
         var addition = 0
         var counter = 0
         var windowed = false
-        repeat(times) { time ->
+        repeat(times) { rockIndex ->
+            if (rockIndex % 1_000_000 == 0) print("${rockIndex / 1_000_000} ")
             if (height + 3 + 4 > rows) {
                 windowed = true
-                chamber.slide(7)
-                height -= 7
-                addition += 7
+                chamber.slide(4)
+                height -= 4
+                addition += 4
             }
-            val rock = rocks[time % 5]
+            val rock = rocks[rockIndex % 5]
             val rockPosition = Pos(height + 3, 2)
+
+            if (rockIndex != 0 && rockIndex % 5 == 0 && counter % wind.length == 0) {
+                return rockIndex
+            }
 
             // draw rock
             for ((row, line) in rock.withIndex())
@@ -172,6 +179,7 @@ fun main() {
         }
 
         return height + addition
+        return 0
     }
 
     // test if implementation meets criteria from the description, like:
@@ -179,11 +187,11 @@ fun main() {
 //    val testInput = readInput("Day17_test2")
 //    println(part1(testInput, 2022))
 //    check(part1(testInput, 2022) == 3068)
-    println(part2(testInput, 2022))
+//    println(part2(testInput, 50))
 //    check(part2(testInput, 26) == 1707)
 
     @Suppress("UNUSED_VARIABLE")
     val input = readInput("Day17")
 //    println(part1(input, 2022))
-//    println(part2(input, 26))
+    println(part2(input, 1729+1561))
 }
