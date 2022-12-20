@@ -96,11 +96,16 @@ fun MutableList<Valve>.maxPressure(nodeA: Pair<Valve, Int>, nodeB: Pair<Valve, I
     val waitA = nodeA.second - spentTime // 0+
     val waitB = nodeB.second - spentTime
 
+    println("  ".repeat(counter) + "${a.name} ${b.name} time $timeLeft rate $releasedRate    ${this.filter { it.opened }.joinToString { it.name }}")
+
     // time is out
     if (timeLeft < 2) return 0 // it takes min 2 to open and release
 
     // last...Rate - prevent cycling
-    if (a.lastRateA == releasedRate || b.lastRateB == releasedRate) return 0
+    if (a.lastRateA == releasedRate || b.lastRateB == releasedRate) {
+        println("  ".repeat(counter) + "ret lastRate ${if (a.lastRateA == releasedRate) "a" else ""} ${if (b.lastRateB == releasedRate) "b" else ""}")
+        return 0
+    }
 
     var foundSubPressure = 0
 
@@ -111,7 +116,7 @@ fun MutableList<Valve>.maxPressure(nodeA: Pair<Valve, Int>, nodeB: Pair<Valve, I
     b.lastRateB = releasedRate
 //    b.lastRateA = releasedRate
 
-    println(" ".repeat(counter) + "${a.name} ${b.name} $timeLeft $releasedRate    ${this.filter { it.opened }.joinToString { it.name }}")
+//    println(" ".repeat(counter) + "${a.name} ${b.name} $timeLeft $releasedRate    ${this.filter { it.opened }.joinToString { it.name }}")
     if (a != b && !a.opened && waitA == 0 && a.name != "AA" && !b.opened && waitB == 0 && b.name != "AA") {
         a.opened = true
         b.opened = true
@@ -142,7 +147,7 @@ fun MutableList<Valve>.maxPressure(nodeA: Pair<Valve, Int>, nodeB: Pair<Valve, I
             foundSubPressure = maxOf(foundSubPressure, additionalPressure + maxPressure(Pair(a, 0), node, timeLeft - 1, releasedRate + a.rate, counter + 1))
         a.opened = false
     }
-    if (!b.opened && waitB == 0 && b.name != "AA") {
+    if (!(a == b && waitA == 0) && !b.opened && waitB == 0 && b.name != "AA") {
         b.opened = true
         val additionalPressure = b.rate * (timeLeft - 1)
         if (all { it.opened || it.name == "AA" }) {
