@@ -93,6 +93,10 @@ fun main() {
             else
                 ops[name] = Expression(name, first, Operation.parse(op.first()), second)
         }
+        input.forEach { line ->
+            parse(line)
+        }
+
         fun solve(first: Long, op: Operation, second: Long): Long {
             return when(op) {
                 Operation.PLUS -> first + second
@@ -101,23 +105,62 @@ fun main() {
                 Operation.DIV -> first / second
             }
         }
-        fun calc(expr: Expression): Long {
+        fun calc(expr: Expression): Long? {
             with(expr) {
-                first = numbers[firstName] ?: calc(ops[firstName]!!)
-                second = numbers[secondName] ?: calc(ops[secondName]!!)
-                return solve(first!!, op, second!!)
+                first = numbers[firstName] ?: if (firstName == "humn") null else calc( ops[firstName]!!)
+                second = numbers[secondName] ?: if (secondName == "humn") null else calc( ops[secondName]!!)
+                if (first != null && second != null)
+                    return solve(first!!, op, second!!).also { numbers[name] = it }
+                else
+                    return null
             }
         }
-        input.forEach { line ->
-            parse(line)
+        fun printExpr(expr: Expression) {
+            with(expr) {
+                if (first != null) print(first)
+                else {
+                    if (firstName == "humn") print("X")
+//                    val firstExpr = ops[firstName]
+//                    if (firstExpr == null) print("X")
+                    else {
+                        print("(")
+                        printExpr(ops[firstName]!!)
+                        print(")")
+                    }
+                }
+                print(op.c)
+                if (second != null) print(second)
+                else {
+                    if (secondName == "humn") print("X")
+//                    val secondExpr = ops[secondName]
+//                    if (secondExpr == null) print("X")
+                    else {
+                        print("(")
+                        printExpr(ops[secondName]!!)
+                        print(")")
+                    }
+                }
+            }
         }
-
         val left = ops[ops["root"]?.firstName]!!
         val right = ops[ops["root"]?.secondName]!!
-        for (i in 0 downTo (-Int.MAX_VALUE / 10000).toLong()) {
-            numbers["humn"] = i
-            if (calc(left) == calc(right)) return i
-        }
+////        for (i in 0 .. (Int.MAX_VALUE / 10).toLong()) {
+//        for (i in 0 downTo (-Int.MAX_VALUE / 10).toLong()) {
+//            numbers["humn"] = i
+//            if (calc(left) == calc(right)) return i
+//        }
+        numbers.remove("humn")
+        println(calc(left))
+        println(calc(right))
+
+        printExpr(left)
+        println()
+        // with help of cite
+        // https://math.semestr.ru/math/expand.php
+        // and WolframAlpha
+        // https://www.wolframalpha.com/input?i=%5Cfrac%7B7511588713779448%7D%7B135%7D-%5Cfrac%7B76636%5Ccdot+x%7D%7B6075%7D%3D6745394553620
+        numbers["humn"] = 3876027196185
+        println(calc(left)) // check equality
         return TODO("Provide the return value")
     }
 
@@ -128,7 +171,7 @@ fun main() {
 //    check(part1(testInput2) == 33)
 //    check(part1(testInput) == 152L)
 
-    println(part2(testInput))
+//    println(part2(testInput))
 //    check(part2(testInput) == 301)
 
     @Suppress("UNUSED_VARIABLE")
