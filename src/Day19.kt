@@ -61,6 +61,11 @@ fun main() {
             repeat(time) {
 
                 with(bp) {
+                    val oreReserve = if (obsidian4Geode - obsidian <= obsidianRobots) ore4Geode
+                    else if (clay4Obsidian - clay <= clayRobots) ore4Obsidian
+                    //else if (ore4Clay - ore <= oreRobots) ore4Clay
+                    else 0
+
                     if (obsidian >= obsidian4Geode && ore >= ore4Geode) {
                         geodeRobots++
                         geode-- // compensate this turn production
@@ -71,11 +76,11 @@ fun main() {
                         obsidian--
                         clay -= clay4Obsidian
                         ore -= ore4Obsidian
-                    } else if (clayRobots < maxClays && ore >= ore4Clay) {
+                    } else if (clayRobots < maxClays && ore - oreReserve >= ore4Clay) {
                         clayRobots++
                         clay--
                         ore -= ore4Clay
-                    } else if (oreRobots < maxOres && ore >= ore4Ore) {
+                    } else if (oreRobots < maxOres && ore - oreReserve >= ore4Ore) {
                         oreRobots++
                         ore--
                         ore -= ore4Ore
@@ -87,7 +92,7 @@ fun main() {
                 obsidian += obsidianRobots
                 geode += geodeRobots
             }
-            return geode
+            return geode.also { println("$maxOres $maxClays $it") }
         }
         var sum = 0
         input.forEachIndexed { index, line ->
@@ -97,7 +102,7 @@ fun main() {
                 for (maxClays in 1..5)
                     maxNumberOfGeodes = maxOf(maxNumberOfGeodes, calc(blueprint, maxOres, maxClays, time = 24))
 
-            sum += maxNumberOfGeodes * (index + 1)
+            sum += maxNumberOfGeodes * (index + 1).also { println("$maxNumberOfGeodes") }
         }
 
         return sum
