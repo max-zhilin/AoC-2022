@@ -1,28 +1,5 @@
 import java.util.*
-enum class Resource {
-    ORE, CLAY, OBSIDIAN, GEODE
-}
-data class Robot(val type: Resource, val madeOf: Map<Resource, Int>) {
 
-    companion object {
-        fun parse(s: String): Robot {
-            // " Each clay robot costs 3 ore"
-            // " Each obsidian robot costs 2 ore and 14 clay"
-            val regex = " Each (\\w+) robot costs (\\d+) (\\w+)(?: and (\\d+) (\\w+))?".toRegex()
-
-            return regex.matchEntire(s)
-                ?.destructured
-                ?.let { (type, costs1, madeOf1, costs2, madeOf2) ->
-                    if (madeOf2.isBlank()) {
-                        Robot(Resource.valueOf(type.uppercase()), mapOf(Resource.valueOf(madeOf1.uppercase()) to costs1.toInt()))
-                    } else {
-                        Robot(Resource.valueOf(type.uppercase()), mapOf(Resource.valueOf(madeOf1.uppercase()) to costs1.toInt(),
-                                                                        Resource.valueOf(madeOf2.uppercase()) to costs2.toInt()))
-                    }
-                }
-                ?: error("Bad input '$s'")        }
-    }
-}
 data class Blueprint(val ore4Ore: Int, val ore4Clay: Int, val ore4Obsidian: Int, val clay4Obsidian: Int, val ore4Geode: Int, val obsidian4Geode: Int) {
 
     companion object {
@@ -43,64 +20,37 @@ data class Blueprint(val ore4Ore: Int, val ore4Clay: Int, val ore4Obsidian: Int,
 
 fun main() {
     fun part1(input: List<String>): Int {
-        fun parse(s: String): List<Robot> {
-            val scanner = Scanner(s)
-            scanner.useDelimiter("\\.")
-            scanner.skip("Blueprint \\d+:")
-            val list = mutableListOf<Robot>()
-            while (scanner.hasNext()) {
-                val line = scanner.next()
-                list.add(Robot.parse(line))
-            }
-            return list
-        }
-        fun calc(bp: Blueprint, maxOres: Int, maxClays: Int, time: Int): Int {
-            var (ore, clay, obsidian, geode) = listOf(0, 0, 0, 0)
-            var oreRobots = 1
-            var (clayRobots, obsidianRobots, geodeRobots) = listOf(0, 0, 0)
-            repeat(time) {
-
-                with(bp) {
-                    val oreReserve = if (obsidian4Geode - obsidian <= obsidianRobots) ore4Geode
-                    else if (clay4Obsidian - clay <= clayRobots) ore4Obsidian
-                    //else if (ore4Clay - ore <= oreRobots) ore4Clay
-                    else 0
-
-                    if (obsidian >= obsidian4Geode && ore >= ore4Geode) {
-                        geodeRobots++
-                        geode-- // compensate this turn production
-                        obsidian -= obsidian4Geode
-                        ore -= ore4Geode
-                    } else if (clay >= clay4Obsidian && ore >= ore4Obsidian) {
-                        obsidianRobots++
-                        obsidian--
-                        clay -= clay4Obsidian
-                        ore -= ore4Obsidian
-                    } else if (clayRobots < maxClays && ore - oreReserve >= ore4Clay) {
-                        clayRobots++
-                        clay--
-                        ore -= ore4Clay
-                    } else if (oreRobots < maxOres && ore - oreReserve >= ore4Ore) {
-                        oreRobots++
-                        ore--
-                        ore -= ore4Ore
-                    }
-                }
-
-                ore += oreRobots
-                clay += clayRobots
-                obsidian += obsidianRobots
-                geode += geodeRobots
-            }
-            return geode.also { println("$maxOres $maxClays $it") }
-        }
         var sum = 0
         input.forEachIndexed { index, line ->
             val blueprint = Blueprint.parse(line)
-            var maxNumberOfGeodes = 0
-            for (maxOres in 1..5)
-                for (maxClays in 1..5)
-                    maxNumberOfGeodes = maxOf(maxNumberOfGeodes, calc(blueprint, maxOres, maxClays, time = 24))
+            fun calc(time: Int, oreRobots: Int, clayRobots: Int, obsidianRobots: Int, geodeRobots: Int,
+                     ore: Int, clay: Int, obsidian: Int): Int {
+                var geode = 0
+                with(blueprint) {
+                    if (time in 1..2)
+                        return geodeRobots * time + if (obsidian >= obsidian4Geode && ore >= ore4Geode) time - 1 else 0
+
+                    if (obsidian >= obsidian4Geode && ore >= ore4Geode)
+                        geode = maxOf(geode, calc(time - 1, oreRobots, clayRobots, obsidianRobots, geodeRobots + 1,
+                            ore + oreRobots - ore4Geode, clay + clayRobots, obsidian + obsidianRobots - obsidian4Geode))
+                    else if (clay >= clay4Obsidian && ore >= ore4Obsidian)
+                        geode = maxOf(geode, calc(time - 1, oreRobots, clayRobots, obsidianRobots + 1, geodeRobots,
+                            ore + oreRobots - ore4Obsidian, clay + clayRobots - clay4Obsidian, obsidian + obsidianRobots))
+                    else if (ore >= ore4Clay)
+                        geode = maxOf(geode, calc(time - 1, oreRobots, clayRobots + 1, obsidianRobots, geodeRobots,
+                            ore + oreRobots - ore4Clay, clay + clayRobots, obsidian + obsidianRobots))
+                    if (ore >= ore4Ore)
+                        geode = maxOf(geode, calc(time - 1, oreRobots + 1, clayRobots, obsidianRobots, geodeRobots,
+                            ore + oreRobots - ore4Ore, clay + clayRobots, obsidian + obsidianRobots))
+
+                    geode = maxOf(geode, calc(time - 1, oreRobots, clayRobots, obsidianRobots, geodeRobots,
+                        ore + oreRobots, clay + clayRobots, obsidian + obsidianRobots))
+
+                }
+                return geodeRobots + geode
+            }
+            var maxNumberOfGeodes = calc(time = 24, 1, 0, 0, 0, 0, 0, 0)
+//            var maxNumberOfGeodes = calc(time = 17, 1, 3, 0, 0, 1, 6, 0)
 
             sum += maxNumberOfGeodes * (index + 1).also { println("$maxNumberOfGeodes") }
         }
@@ -109,21 +59,118 @@ fun main() {
     }
 
     fun part2(input: List<String>): Int {
-        return 0
+        var sum = 1
+        input.forEachIndexed { index, line ->
+//        input.take(3).forEach { line ->
+            val blueprint = Blueprint.parse(line)
+            val (maxOreRobots, maxClayRobots, maxObsidianRobots) = with(blueprint) {
+                listOf(maxOf(ore4Ore, ore4Clay, ore4Obsidian, ore4Geode),
+                    clay4Obsidian ,// 2 + 1,
+                    obsidian4Geode / 2 + 1
+                )
+            }
+            data class Params(val oreRobots: Int, val clayRobots: Int, val obsidianRobots: Int, val geodeRobots: Int, val ore: Int, val clay: Int, val obsidian: Int, val geode: Int)
+            val preset = mutableSetOf<Params>()
+            fun precalc(time: Int, oreRobots: Int, clayRobots: Int, obsidianRobots: Int, geodeRobots: Int, ore: Int, clay: Int, obsidian: Int, geode: Int) {
+                with(blueprint) {
+                    if (time == 0) {
+                        preset.add(Params(oreRobots, clayRobots, obsidianRobots, geodeRobots, ore, clay, obsidian, geode))
+                        return
+                    }
+
+                    if (obsidian >= obsidian4Geode && ore >= ore4Geode)
+                        precalc(time - 1, oreRobots, clayRobots, obsidianRobots, geodeRobots + 1,
+                            ore + oreRobots - ore4Geode, clay + clayRobots, obsidian + obsidianRobots - obsidian4Geode, geode + geodeRobots)
+                    if (obsidianRobots < maxObsidianRobots && clay >= clay4Obsidian && ore >= ore4Obsidian)
+                        precalc(time - 1, oreRobots, clayRobots, obsidianRobots + 1, geodeRobots,
+                            ore + oreRobots - ore4Obsidian, clay + clayRobots - clay4Obsidian, obsidian + obsidianRobots, geode + geodeRobots)
+                    if (clayRobots < maxClayRobots && ore >= ore4Clay)
+                        precalc(time - 1, oreRobots, clayRobots + 1, obsidianRobots, geodeRobots,
+                            ore + oreRobots - ore4Clay, clay + clayRobots, obsidian + obsidianRobots, geode + geodeRobots)
+                    if (oreRobots < maxOreRobots && ore >= ore4Ore)
+                        precalc(time - 1, oreRobots + 1, clayRobots, obsidianRobots, geodeRobots,
+                            ore + oreRobots - ore4Ore, clay + clayRobots, obsidian + obsidianRobots, geode + geodeRobots)
+
+                    precalc(time - 1, oreRobots, clayRobots, obsidianRobots, geodeRobots,
+                        ore + oreRobots, clay + clayRobots, obsidian + obsidianRobots, geode + geodeRobots)
+                }
+            }
+            var maxOre = 0; var maxClay = 0; var maxObsidian = 0
+            fun calc(time: Int, oreRobots: Int, clayRobots: Int, obsidianRobots: Int, geodeRobots: Int,
+                     ore: Int, clay: Int, obsidian: Int): Int {
+                var geodes = 0
+//                maxOre = maxOf(maxOre, ore); maxClay = maxOf(maxClay, clay); maxObsidian = maxOf(maxObsidian, obsidian)
+                with(blueprint) {
+                    if (time in 1..2)
+                        return geodeRobots * time + if (obsidian >= obsidian4Geode && ore >= ore4Geode) time - 1 else 0
+                    if (time == 3)
+                        return geodeRobots * time + if (obsidian >= obsidian4Geode && ore >= ore4Geode)
+                            if (obsidian - obsidian4Geode + obsidianRobots >= obsidian4Geode && ore - ore4Geode + oreRobots >= ore4Geode) 3 else 2
+                        else if (obsidian + obsidianRobots >= obsidian4Geode && ore + oreRobots >= ore4Geode) 1 else 0
+
+                    if (obsidian >= obsidian4Geode && ore >= ore4Geode)
+                        geodes = maxOf(geodes, calc(time - 1, oreRobots, clayRobots, obsidianRobots, geodeRobots + 1,
+                            ore + oreRobots - ore4Geode, clay + clayRobots, obsidian + obsidianRobots - obsidian4Geode))
+//                    else
+                        if (
+                            obsidianRobots < maxObsidianRobots &&
+                            clay >= clay4Obsidian && ore >= ore4Obsidian)
+                            geodes = maxOf(geodes, calc(time - 1, oreRobots, clayRobots, obsidianRobots + 1, geodeRobots,
+                                ore + oreRobots - ore4Obsidian, clay + clayRobots - clay4Obsidian, obsidian + obsidianRobots))
+                    if (
+//                        time > 8 &&
+                        clayRobots < maxClayRobots &&
+                        ore >= ore4Clay)
+                        geodes = maxOf(geodes, calc(time - 1, oreRobots, clayRobots + 1, obsidianRobots, geodeRobots,
+                            ore + oreRobots - ore4Clay, clay + clayRobots, obsidian + obsidianRobots))
+                    if (
+//                        time > 8 &&
+                        oreRobots < maxOreRobots &&
+                        ore >= ore4Ore)
+                        geodes = maxOf(geodes, calc(time - 1, oreRobots + 1, clayRobots, obsidianRobots, geodeRobots,
+                            ore + oreRobots - ore4Ore, clay + clayRobots, obsidian + obsidianRobots))
+
+                    if (
+//                        time > 5 &&
+//                        ore < maxOreRobots * 4 && clay < maxClayRobots * 4 && //obsidian < maxObsidianRobots * 4 &&
+                        true)
+                        geodes = maxOf(geodes, calc(time - 1, oreRobots, clayRobots, obsidianRobots, geodeRobots,
+                            ore + oreRobots, clay + clayRobots, obsidian + obsidianRobots))
+
+                }
+                return geodeRobots + geodes
+            }
+            val precalcTime = 20
+            precalc(precalcTime, 1, 0, 0, 0, 0, 0, 0, 0)
+            println("set size ${preset.size}")
+            var count = 0
+            sum += (index + 1) * preset.maxOf { params ->
+//            sum *= preset.maxOf { params ->
+                with(params) {
+                    count++
+                    if (count % 10000 == 0) print("*")
+                    geode + calc(time = 32 - precalcTime, oreRobots, clayRobots, obsidianRobots, geodeRobots, ore, clay, obsidian)
+                }
+            }.also { println(); println(it) }
+//            println("max $maxOre $maxClay $maxObsidian")
+        }
+
+        return sum
     }
 
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("Day19_test")
-//    val testInput2 = readInput("Day19_test2")
-    println(part1(testInput))
+    val testInput2 = readInput("Day19_test2")
+//    println(part1(testInput))
 //    check(part1(testInput2) == 33)
 //    check(part1(testInput) == 33)
 
 //    println(part2(testInput))
+    println(part2(testInput2))
 //    check(part2(testInput) == 58)
 
     @Suppress("UNUSED_VARIABLE")
     val input = readInput("Day19")
-//    println(part1(input))
-//    println(part2(input))
+//    println(part1(input)) // = 1346
+//    println(part2(input)) // > 7098
 }
