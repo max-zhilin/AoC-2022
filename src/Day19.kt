@@ -60,13 +60,13 @@ fun main() {
 
     fun part2(input: List<String>): Int {
         var sum = 1
-        input.forEachIndexed { index, line ->
-//        input.take(3).forEach { line ->
+//        input.forEachIndexed { index, line ->
+        input.take(3).forEach { line ->
             val blueprint = Blueprint.parse(line)
             val (maxOreRobots, maxClayRobots, maxObsidianRobots) = with(blueprint) {
                 listOf(maxOf(ore4Ore, ore4Clay, ore4Obsidian, ore4Geode),
                     clay4Obsidian ,// 2 + 1,
-                    obsidian4Geode / 2 + 1
+                    obsidian4Geode // 2 + 1
                 )
             }
             data class Params(val oreRobots: Int, val clayRobots: Int, val obsidianRobots: Int, val geodeRobots: Int, val ore: Int, val clay: Int, val obsidian: Int, val geode: Int)
@@ -112,11 +112,11 @@ fun main() {
                         geodes = maxOf(geodes, calc(time - 1, oreRobots, clayRobots, obsidianRobots, geodeRobots + 1,
                             ore + oreRobots - ore4Geode, clay + clayRobots, obsidian + obsidianRobots - obsidian4Geode))
 //                    else
-                        if (
-                            obsidianRobots < maxObsidianRobots &&
-                            clay >= clay4Obsidian && ore >= ore4Obsidian)
-                            geodes = maxOf(geodes, calc(time - 1, oreRobots, clayRobots, obsidianRobots + 1, geodeRobots,
-                                ore + oreRobots - ore4Obsidian, clay + clayRobots - clay4Obsidian, obsidian + obsidianRobots))
+                    if (
+                        obsidianRobots < maxObsidianRobots &&
+                        clay >= clay4Obsidian && ore >= ore4Obsidian)
+                        geodes = maxOf(geodes, calc(time - 1, oreRobots, clayRobots, obsidianRobots + 1, geodeRobots,
+                            ore + oreRobots - ore4Obsidian, clay + clayRobots - clay4Obsidian, obsidian + obsidianRobots))
                     if (
 //                        time > 8 &&
                         clayRobots < maxClayRobots &&
@@ -140,12 +140,12 @@ fun main() {
                 }
                 return geodeRobots + geodes
             }
-            val precalcTime = 20
+            val precalcTime = 22
             precalc(precalcTime, 1, 0, 0, 0, 0, 0, 0, 0)
             println("set size ${preset.size}")
             var count = 0
-            sum += (index + 1) * preset.maxOf { params ->
-//            sum *= preset.maxOf { params ->
+//            sum += (index + 1) * preset.maxOf { params ->
+            sum *= preset.maxOf { params ->
                 with(params) {
                     count++
                     if (count % 10000 == 0) print("*")
@@ -166,11 +166,11 @@ fun main() {
 //    check(part1(testInput) == 33)
 
 //    println(part2(testInput))
-    println(part2(testInput2))
+//    println(part2(testInput2))
 //    check(part2(testInput) == 58)
 
     @Suppress("UNUSED_VARIABLE")
     val input = readInput("Day19")
 //    println(part1(input)) // = 1346
-//    println(part2(input)) // > 7098
+    println(part2(input)) // = 7644
 }
