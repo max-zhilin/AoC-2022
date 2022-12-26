@@ -96,14 +96,14 @@ fun MutableList<Valve>.maxPressure(nodeA: Pair<Valve, Int>, nodeB: Pair<Valve, I
     val waitA = nodeA.second - spentTime // 0+
     val waitB = nodeB.second - spentTime
 
-    println("  ".repeat(counter) + "${a.name} ${b.name} time $timeLeft rate $releasedRate    ${this.filter { it.opened }.joinToString { it.name }}")
+//    println("  ".repeat(counter) + "${a.name} ${b.name} time $timeLeft rate $releasedRate    ${this.filter { it.opened }.joinToString { it.name }}")
 
     // time is out
     if (timeLeft < 2) return 0 // it takes min 2 to open and release
 
     // last...Rate - prevent cycling
     if (a.lastRateA == releasedRate || b.lastRateB == releasedRate) {
-        println("  ".repeat(counter) + "ret lastRate ${if (a.lastRateA == releasedRate) "a" else ""} ${if (b.lastRateB == releasedRate) "b" else ""}")
+//        println("  ".repeat(counter) + "ret lastRate ${if (a.lastRateA == releasedRate) "a" else ""} ${if (b.lastRateB == releasedRate) "b" else ""}")
         return 0
     }
 
@@ -112,8 +112,10 @@ fun MutableList<Valve>.maxPressure(nodeA: Pair<Valve, Int>, nodeB: Pair<Valve, I
     val tempRateA = a.lastRateA
     val tempRateB = b.lastRateB
 //    val tempRateB = b.lastRateA
-    a.lastRateA = releasedRate
-    b.lastRateB = releasedRate
+    if (waitA == 0)
+        a.lastRateA = releasedRate
+    if (waitB == 0)
+        b.lastRateB = releasedRate
 //    b.lastRateA = releasedRate
 
 //    println(" ".repeat(counter) + "${a.name} ${b.name} $timeLeft $releasedRate    ${this.filter { it.opened }.joinToString { it.name }}")
@@ -208,7 +210,8 @@ fun main() {
 
     // test if implementation meets criteria from the description, like:
 //    val testInput = readInput("Day16_test")
-    val testInput = readInput("Day16_test2")
+//    val testInput = readInput("Day16_test2")
+    val testInput = readInput("Day16_test3")
 //    println(part1(testInput))
 //    check(part1(testInput, 30) == 1651)
     println(part2(testInput, 26))
