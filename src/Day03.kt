@@ -19,8 +19,7 @@ fun main() {
     fun part2(input: List<String>): Int {
         var sum = 0
         val groups = input.chunked(3)
-        groups.forEach {
-            val (one, two, three) = it
+        groups.forEach { (one, two, three) ->
             loop@ for (i in one) {
                 for (j in two) {
                     for (k in three) {
