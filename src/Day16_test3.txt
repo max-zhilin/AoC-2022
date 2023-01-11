@@ -1,0 +1,10 @@
+Valve AA has flow rate=0; tunnels lead to valves BB, CC
+Valve BB has flow rate=15; tunnels lead to valves CC, AA, GG
+Valve CC has flow rate=20; tunnels lead to valves AA, BB, DD, GG
+Valve DD has flow rate=0; tunnels lead to valves CC, EE
+Valve EE has flow rate=0; tunnels lead to valves DD, FF
+Valve FF has flow rate=10; tunnels lead to valves EE, HH
+Valve GG has flow rate=0; tunnels lead to valves BB, CC
+Valve HH has flow rate=0; tunnels lead to valves FF, KK
+Valve KK has flow rate=0; tunnels lead to valves HH, MM
+Valve MM has flow rate=10; tunnels lead to valves KK
